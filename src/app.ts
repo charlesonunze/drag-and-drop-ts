@@ -1,3 +1,16 @@
+// AutoBind Decorator
+function BindThisToThis(_: any, __: string, descriptor: PropertyDescriptor) {
+	const originalMethod = descriptor.value;
+	const newDescriptor: PropertyDescriptor = {
+		configurable: true,
+		get() {
+			const boundFN = originalMethod.bind(this);
+			return boundFN;
+		},
+	};
+	return newDescriptor;
+}
+
 class ProjectInput {
 	_template: HTMLTemplateElement;
 	_form: HTMLFormElement;
@@ -27,12 +40,13 @@ class ProjectInput {
 		this.attachNode();
 	}
 
+	@BindThisToThis
 	private submitHandler(event: Event) {
 		event.preventDefault();
 	}
 
 	private addListener() {
-		this._form.addEventListener('submit', this.submitHandler.bind(this));
+		this._form.addEventListener('submit', this.submitHandler);
 	}
 
 	private attachNode() {
