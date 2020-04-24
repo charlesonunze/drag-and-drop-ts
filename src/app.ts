@@ -11,6 +11,37 @@ function BindThisToThis(_: any, __: string, descriptor: PropertyDescriptor) {
 	return newDescriptor;
 }
 
+// ProjectList Class
+class ProjectList {
+	_template: HTMLTemplateElement;
+	_section: HTMLElement;
+	_app: HTMLDivElement;
+
+	constructor(private type: 'active' | 'finished') {
+		this._app = document.getElementById('app') as HTMLDivElement;
+		this._template = document.getElementById(
+			'project-list'
+		) as HTMLTemplateElement;
+
+		const importedNode = document.importNode(this._template.content, true);
+		this._section = importedNode.firstElementChild as HTMLElement;
+		this._section.id = `${this.type}-projects`;
+		this.attachNode();
+		this.renderContent();
+	}
+
+	private attachNode() {
+		this._app.insertAdjacentElement('beforeend', this._section);
+	}
+
+	private renderContent() {
+		const listId = `${this.type}-project-list`;
+		this._section.querySelector('ul')!.id = listId;
+		this._section.querySelector('h2')!.innerText =
+			this.type.toLocaleUpperCase() + ' PROJECTS';
+	}
+}
+
 class ProjectInput {
 	_template: HTMLTemplateElement;
 	_form: HTMLFormElement;
@@ -81,3 +112,5 @@ class ProjectInput {
 }
 
 const projectInput = new ProjectInput();
+const activeProjects = new ProjectList('active');
+const finishedProjects = new ProjectList('finished');
