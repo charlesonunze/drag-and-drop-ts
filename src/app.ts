@@ -11,23 +11,77 @@ function BindThisToThis(_: any, __: string, descriptor: PropertyDescriptor) {
 	return newDescriptor;
 }
 
+// Project State
+class ProjectState {
+	private projects: any[] = [];
+	private listeners: any[] = [];
+	private static instance: ProjectState;
+
+	private constructor() {}
+
+	addProject(title: string, description: string, numOfPeople: number) {
+		const newProject = {
+			title,
+			description,
+			numOfPeople,
+			id: Math.random.toString(),
+		};
+		this.projects.push(newProject);
+		this.listeners.forEach((listenerFn) => {
+			listenerFn([...this.projects]);
+		});
+	}
+
+	addListener(listener: Function) {
+		this.listeners.push(listener);
+	}
+
+	static getInstance() {
+		if (this.instance) return this.instance;
+		this.instance = new ProjectState();
+		return this.instance;
+	}
+}
+
+const state = ProjectState.getInstance();
+
 // ProjectList Class
 class ProjectList {
 	_template: HTMLTemplateElement;
 	_section: HTMLElement;
 	_app: HTMLDivElement;
+	_projects: any[];
 
 	constructor(private type: 'active' | 'finished') {
 		this._app = document.getElementById('app') as HTMLDivElement;
 		this._template = document.getElementById(
 			'project-list'
 		) as HTMLTemplateElement;
+		this._projects = [];
 
 		const importedNode = document.importNode(this._template.content, true);
 		this._section = importedNode.firstElementChild as HTMLElement;
 		this._section.id = `${this.type}-projects`;
+
+		state.addListener((projects: any[]) => {
+			this._projects = projects;
+			this.renderProjects();
+		});
+
 		this.attachNode();
 		this.renderContent();
+	}
+
+	private renderProjects() {
+		const listTag = document.getElementById(
+			`${this.type}-projects`
+		)! as HTMLUListElement;
+
+		this._projects.forEach((p) => {
+			const listItem = document.createElement('li');
+			listItem.textContent = p.title;
+			listTag.appendChild(listItem);
+		});
 	}
 
 	private attachNode() {
@@ -97,7 +151,7 @@ class ProjectInput {
 
 		if (Array.isArray(data)) {
 			const [_title, _description, _people] = data;
-			console.log(_title, _description, _people);
+			state.addProject(_title, _description, _people);
 			this.clearUserInput();
 		}
 	}
