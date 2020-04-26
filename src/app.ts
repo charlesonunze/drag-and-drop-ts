@@ -68,6 +68,18 @@ class ProjectState extends State<Project> {
 		);
 
 		this.projects.push(newProject);
+		this.updateListeners();
+	}
+
+	moveProject(projectId: string, newStatus: ProjectStatus) {
+		const project = this.projects.find((p) => p.id === projectId);
+		if (project && project.status !== newStatus) {
+			project.status = newStatus;
+			this.updateListeners();
+		}
+	}
+
+	private updateListeners() {
 		this.listeners.forEach((listenerFn) => {
 			listenerFn([...this.projects]);
 		});
@@ -175,8 +187,13 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement>
 		}
 	}
 
+	@BindThisToThis
 	dropHandler(event: DragEvent) {
-		console.log(event.dataTransfer!.getData('text/plain'));
+		const projectId = event.dataTransfer!.getData('text/plain');
+		state.moveProject(
+			projectId,
+			this.type === 'active' ? ProjectStatus.ACTIVE : ProjectStatus.FINISHED
+		);
 	}
 
 	@BindThisToThis
