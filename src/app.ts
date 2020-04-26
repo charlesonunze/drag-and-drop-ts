@@ -1,3 +1,9 @@
+// Drag and Drop Interfaces
+interface Draggable {
+	dragStartHandler(event: DragEvent): void;
+	dragEndHandler(event: DragEvent): void;
+}
+
 // AutoBind Decorator
 function BindThisToThis(_: any, __: string, descriptor: PropertyDescriptor) {
 	const originalMethod = descriptor.value;
@@ -100,8 +106,8 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 }
 
 // ProjectList Class
-
-class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
+class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>
+	implements Draggable {
 	private project: Project;
 
 	public get persons(): string {
@@ -112,7 +118,23 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
 	constructor(parentId: string, project: Project) {
 		super('single-project', parentId, true, project.id);
 		this.project = project;
+		this.configure();
 		this.renderContent();
+	}
+
+	@BindThisToThis
+	dragStartHandler(event: DragEvent) {
+		console.log(event);
+	}
+
+	// @BindThisToThis
+	dragEndHandler(event: DragEvent) {
+		console.log(event);
+	}
+
+	configure() {
+		this.childElement.addEventListener('dragstart', this.dragStartHandler);
+		this.childElement.addEventListener('dragend', this.dragEndHandler);
 	}
 
 	renderContent() {
