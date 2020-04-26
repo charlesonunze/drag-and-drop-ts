@@ -4,6 +4,12 @@ interface Draggable {
 	dragEndHandler(event: DragEvent): void;
 }
 
+interface DropTarget {
+	dragOverHandler(event: DragEvent): void;
+	dropHandler(event: DragEvent): void;
+	dragLeaveHandler(event: DragEvent): void;
+}
+
 // AutoBind Decorator
 function BindThisToThis(_: any, __: string, descriptor: PropertyDescriptor) {
 	const originalMethod = descriptor.value;
@@ -148,17 +154,41 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>
 	}
 }
 
-class ProjectList extends Component<HTMLDivElement, HTMLElement> {
+class ProjectList extends Component<HTMLDivElement, HTMLElement>
+	implements DropTarget {
 	_projects: Project[];
 
 	constructor(private type: 'active' | 'finished') {
 		super('project-list', 'app', true, `${type}-projects`);
 		this._projects = [];
+
 		this.configure();
 		this.renderContent();
 	}
 
+	@BindThisToThis
+	dragOverHandler(_: DragEvent) {
+		console.log(_);
+		const listEl = this.childElement.querySelector('ul')!;
+		listEl.classList.add('droppable');
+	}
+
+	dropHandler(_: DragEvent) {
+		console.log(_);
+	}
+
+	@BindThisToThis
+	dragLeaveHandler(_: DragEvent) {
+		console.log(_);
+		const listEl = this.childElement.querySelector('ul')!;
+		listEl.classList.remove('droppable');
+	}
+
 	configure() {
+		this.childElement.addEventListener('dragover', this.dragOverHandler);
+		this.childElement.addEventListener('drop', this.dropHandler);
+		this.childElement.addEventListener('dragleave', this.dragLeaveHandler);
+
 		state.addListener((projects: Project[]) => {
 			const projectsToRender = projects.filter((p) => {
 				if (this.type === 'active') return p.status === ProjectStatus.ACTIVE;
