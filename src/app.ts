@@ -48,7 +48,7 @@ class ProjectState extends State<Project> {
 
 	addProject(title: string, description: string, numOfPeople: number) {
 		const newProject = new Project(
-			Math.random.toString(),
+			Math.random().toString(),
 			title,
 			description,
 			numOfPeople,
@@ -72,8 +72,9 @@ const state = ProjectState.getInstance();
 
 abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 	template: HTMLTemplateElement;
-	childElement: U;
 	parentElement: T;
+	childElement: U;
+
 	constructor(
 		templateId: string,
 		parentElementId: string,
@@ -96,11 +97,35 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 			this.childElement
 		);
 	}
-
-	abstract configure(): void;
 }
 
 // ProjectList Class
+
+class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
+	private project: Project;
+
+	public get persons(): string {
+		if (this.project.people === 1) return '1 person';
+		return `${this.project.people} persons`;
+	}
+
+	constructor(parentId: string, project: Project) {
+		super('single-project', parentId, true, project.id);
+		this.project = project;
+		this.renderContent();
+	}
+
+	renderContent() {
+		this.childElement.querySelector('h2')!.textContent = this.project.title;
+		this.childElement.querySelector(
+			'h3'
+		)!.textContent = this.project.description;
+		this.childElement.querySelector(
+			'p'
+		)!.textContent = `${this.persons} assigned.`;
+	}
+}
+
 class ProjectList extends Component<HTMLDivElement, HTMLElement> {
 	_projects: Project[];
 
@@ -137,9 +162,7 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement> {
 		listTag.innerHTML = '';
 
 		this._projects.forEach((p) => {
-			const listItem = document.createElement('li');
-			listItem.textContent = p.title;
-			listTag.appendChild(listItem);
+			new ProjectItem(this.childElement.querySelector('ul')!.id, p);
 		});
 	}
 }
