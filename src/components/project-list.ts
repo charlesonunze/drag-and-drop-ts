@@ -1,73 +1,77 @@
-/// <reference path="base-component.ts" />
-namespace App {
-	export class ProjectList extends Component<HTMLDivElement, HTMLElement>
-		implements DropTarget {
-		_projects: Project[];
+import Component from './base-component';
+import { DropTarget } from '../models/drag-and-drop';
+import state from '../state/index';
+import Project, { ProjectStatus } from '../models/project';
+import ProjectItem from 'project-item';
+import BindThisToThis from '../decorators/bind-this-to-this';
 
-		constructor(private type: 'active' | 'finished') {
-			super('project-list', 'app', true, `${type}-projects`);
-			this._projects = [];
+export default class ProjectList extends Component<HTMLDivElement, HTMLElement>
+	implements DropTarget {
+	_projects: Project[];
 
-			this.configure();
-			this.renderContent();
-		}
+	constructor(private type: 'active' | 'finished') {
+		super('project-list', 'app', true, `${type}-projects`);
+		this._projects = [];
 
-		@BindThisToThis
-		dragOverHandler(event: DragEvent) {
-			if (event.dataTransfer && event.dataTransfer.types[0] === 'text/plain') {
-				event.preventDefault();
-				const listEl = this.childElement.querySelector('ul')!;
-				listEl.classList.add('droppable');
-			}
-		}
+		this.configure();
+		this.renderContent();
+	}
 
-		@BindThisToThis
-		dropHandler(event: DragEvent) {
-			const projectId = event.dataTransfer!.getData('text/plain');
-			state.moveProject(
-				projectId,
-				this.type === 'active' ? ProjectStatus.ACTIVE : ProjectStatus.FINISHED
-			);
-		}
-
-		@BindThisToThis
-		dragLeaveHandler(_: DragEvent) {
+	@BindThisToThis
+	dragOverHandler(event: DragEvent) {
+		if (event.dataTransfer && event.dataTransfer.types[0] === 'text/plain') {
+			event.preventDefault();
 			const listEl = this.childElement.querySelector('ul')!;
-			listEl.classList.remove('droppable');
+			listEl.classList.add('droppable');
 		}
+	}
 
-		configure() {
-			this.childElement.addEventListener('dragover', this.dragOverHandler);
-			this.childElement.addEventListener('drop', this.dropHandler);
-			this.childElement.addEventListener('dragleave', this.dragLeaveHandler);
+	@BindThisToThis
+	dropHandler(event: DragEvent) {
+		const projectId = event.dataTransfer!.getData('text/plain');
+		state.moveProject(
+			projectId,
+			this.type === 'active' ? ProjectStatus.ACTIVE : ProjectStatus.FINISHED
+		);
+	}
 
-			state.addListener((projects: Project[]) => {
-				const projectsToRender = projects.filter((p) => {
-					if (this.type === 'active') return p.status === ProjectStatus.ACTIVE;
-					return p.status === ProjectStatus.FINISHED;
-				});
-				this._projects = projectsToRender;
-				this.renderProjects();
+	@BindThisToThis
+	dragLeaveHandler(_: DragEvent) {
+		const listEl = this.childElement.querySelector('ul')!;
+		listEl.classList.remove('droppable');
+	}
+
+	configure() {
+		this.childElement.addEventListener('dragover', this.dragOverHandler);
+		this.childElement.addEventListener('drop', this.dropHandler);
+		this.childElement.addEventListener('dragleave', this.dragLeaveHandler);
+
+		state.addListener((projects: Project[]) => {
+			const projectsToRender = projects.filter((p) => {
+				if (this.type === 'active') return p.status === ProjectStatus.ACTIVE;
+				return p.status === ProjectStatus.FINISHED;
 			});
-		}
+			this._projects = projectsToRender;
+			this.renderProjects();
+		});
+	}
 
-		renderContent() {
-			const listId = `${this.type}-project-list`;
-			this.childElement.querySelector('ul')!.id = listId;
-			this.childElement.querySelector('h2')!.innerText =
-				this.type.toLocaleUpperCase() + ' PROJECTS';
-		}
+	renderContent() {
+		const listId = `${this.type}-project-list`;
+		this.childElement.querySelector('ul')!.id = listId;
+		this.childElement.querySelector('h2')!.innerText =
+			this.type.toLocaleUpperCase() + ' PROJECTS';
+	}
 
-		private renderProjects() {
-			const listTag = document.getElementById(
-				`${this.type}-project-list`
-			)! as HTMLUListElement;
+	private renderProjects() {
+		const listTag = document.getElementById(
+			`${this.type}-project-list`
+		)! as HTMLUListElement;
 
-			listTag.innerHTML = '';
+		listTag.innerHTML = '';
 
-			this._projects.forEach((p) => {
-				new ProjectItem(this.childElement.querySelector('ul')!.id, p);
-			});
-		}
+		this._projects.forEach((p) => {
+			new ProjectItem(this.childElement.querySelector('ul')!.id, p);
+		});
 	}
 }
