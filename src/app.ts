@@ -1,8 +1,9 @@
-/// <reference path="dd-interfaces.ts" />
-/// <reference path="project-model.ts" />
-/// <reference path="state.ts" />
-/// <reference path="decorators.ts" />
-/// <reference path="component.ts" />
+/// <reference path="models/drag-and-drop.ts" />
+/// <reference path="models/project.ts" />
+/// <reference path="state/index.ts" />
+/// <reference path="decorators/bind-this-to-this.ts" />
+/// <reference path="components/project-input.ts" />
+/// <reference path="components/project-list.ts" />
 
 namespace App {
 	new ProjectInput();
